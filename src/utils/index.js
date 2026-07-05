@@ -119,6 +119,58 @@ export function buildDefaultState() {
   };
 }
 
+export function normalizeImportedProject(input) {
+  const source = input && typeof input === 'object' && !Array.isArray(input) && input.project && typeof input.project === 'object'
+    ? input.project
+    : input;
+
+  if (!source || typeof source !== 'object' || Array.isArray(source)) {
+    return buildDefaultState();
+  }
+
+  const toArray = (value) => Array.isArray(value) ? value : [];
+  const toNumber = (value, fallback) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+
+  const resources = toArray(source.resources ?? source.resourceList ?? source.resource_list).map((resource, index) => ({
+    id: resource?.id || `resource-${index + 1}`,
+    name: resource?.name || '',
+    role: resource?.role || resource?.title || '',
+    location: resource?.location || '',
+    billRate: toNumber(resource?.billRate ?? resource?.bill_rate ?? resource?.billrate, 150),
+    costRate: toNumber(resource?.costRate ?? resource?.cost_rate ?? resource?.costrate, 0),
+  }));
+
+  const workstreams = toArray(source.workstreams ?? source.workstreamList ?? source.workstream_list).map((workstream, wsIndex) => ({
+    id: workstream?.id || `workstream-${wsIndex + 1}`,
+    name: workstream?.name || `Workstream ${wsIndex + 1}`,
+    tasks: toArray(workstream?.tasks ?? workstream?.items ?? workstream?.taskList ?? workstream?.task_list).map((task, taskIndex) => ({
+      id: task?.id || `task-${wsIndex + 1}-${taskIndex + 1}`,
+      name: task?.name || `Task ${taskIndex + 1}`,
+      sprints: toNumber(task?.sprints ?? task?.sprintCount ?? task?.sprint_count ?? task?.duration, 1),
+      startSprint: toNumber(task?.startSprint ?? task?.start ?? task?.start_sprint ?? task?.startSprintIndex ?? 0, 0),
+      dependencies: task?.dependencies || task?.dependsOn || '',
+      allocations: toArray(task?.allocations ?? task?.allocationList ?? task?.allocation_list).map((allocation, allocIndex) => ({
+        id: allocation?.id || `allocation-${wsIndex + 1}-${taskIndex + 1}-${allocIndex + 1}`,
+        resourceId: allocation?.resourceId || allocation?.resource_id || '',
+        pct: toNumber(allocation?.pct ?? allocation?.percent ?? allocation?.percentage ?? 100, 100),
+      })),
+    })),
+  }));
+
+  return {
+    ...buildDefaultState(),
+    ...source,
+    name: source.name ?? source.projectName ?? source.project_name ?? source.title ?? 'New Project',
+    startDate: source.startDate ?? source.projectStartDate ?? source.project_start_date ?? source.start ?? '',
+    totalSprints: toNumber(source.totalSprints ?? source.sprintCount ?? source.total_sprints ?? source.sprints, 8),
+    resources,
+    workstreams,
+  };
+}
+
 export function saveToLocalStorage(state) {
   localStorage.setItem('projectPlanner_state', JSON.stringify(state));
 }

@@ -4,6 +4,7 @@ import { Btn } from './UI';
 import { projectEndDate, fmt } from '../utils';
 
 export default function ProjectHeader({ state, updateProject, exportJSON, importJSON, resetProject }) {
+  const fileInputRef = React.useRef(null);
   const endDate = state.startDate && state.totalSprints
     ? projectEndDate(new Date(state.startDate), state.totalSprints)
     : null;
@@ -12,6 +13,10 @@ export default function ProjectHeader({ state, updateProject, exportJSON, import
     const file = e.target.files[0];
     if (file) importJSON(file);
     e.target.value = '';
+  }
+
+  function handleLoadClick() {
+    fileInputRef.current?.click();
   }
 
   return (
@@ -78,12 +83,18 @@ export default function ProjectHeader({ state, updateProject, exportJSON, import
         <Btn size="sm" variant="accent" onClick={exportJSON}>
           <Download size={13} /> Save JSON
         </Btn>
-        <label style={{ cursor: 'pointer' }}>
-          <Btn size="sm" as="span">
+        <div>
+          <Btn size="sm" onClick={handleLoadClick}>
             <Upload size={13} /> Load JSON
           </Btn>
-          <input type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
-        </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,application/json"
+            style={{ display: 'none' }}
+            onChange={handleImport}
+          />
+        </div>
         <Btn size="sm" onClick={resetProject} style={{ color: '#94a3b8', borderColor: '#e2e8f0' }}>
           <RotateCcw size={12} />
         </Btn>

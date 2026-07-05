@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import {
   uuid, DEFAULT_TASKS, buildDefaultState,
-  saveToLocalStorage, loadFromLocalStorage
+  saveToLocalStorage, loadFromLocalStorage, normalizeImportedProject
 } from '../utils';
 
 export function useProjectState() {
@@ -184,7 +184,8 @@ const addTask = useCallback((wsId) => {
     reader.onload = (e) => {
       try {
         const parsed = JSON.parse(e.target.result);
-        setState(parsed);
+        const normalized = normalizeImportedProject(parsed);
+        setState(normalized);
       } catch {
         alert('Invalid JSON file — could not import.');
       }
