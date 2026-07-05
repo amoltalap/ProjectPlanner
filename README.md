@@ -1,4 +1,5 @@
 # Project Planner
+Prequisite Software installation - Visual Studio Code, Git Bash and NPM.
 
 A sprint-based project planning tool built in React. Designed for consulting engagements where you need to quickly model team allocations, timelines, and costs across multiple workstreams — without standing up a database or a heavyweight PM tool.
 
